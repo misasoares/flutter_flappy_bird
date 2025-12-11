@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../game/flappy_bird_game.dart';
 import '../../score/score_manager.dart';
+import '../../audio/audio_manager.dart';
 
 class WelcomeMenu extends StatefulWidget {
   final FlappyBirdGame gameRef;
@@ -13,17 +14,26 @@ class WelcomeMenu extends StatefulWidget {
 
 class _WelcomeMenuState extends State<WelcomeMenu> {
   int highScore = 0;
+  bool isMuted = false;
 
   @override
   void initState() {
     super.initState();
     _loadHighScore();
+    isMuted = AudioManager().isMuted;
   }
 
   Future<void> _loadHighScore() async {
     await ScoreManager().loadHighScore();
     setState(() {
       highScore = ScoreManager().highScore;
+    });
+  }
+
+  void _toggleMute() {
+    AudioManager().toggleMute();
+    setState(() {
+      isMuted = AudioManager().isMuted;
     });
   }
 
@@ -143,6 +153,20 @@ class _WelcomeMenuState extends State<WelcomeMenu> {
                 },
               ),
             ],
+          ),
+        ),
+        Positioned(
+          top: 40,
+          right: 20,
+          child: GestureDetector(
+            onTap: _toggleMute,
+            child: Image.asset(
+              isMuted
+                  ? 'assets/images/audio_off.png'
+                  : 'assets/images/audio_on.png',
+              width: 40,
+              height: 40,
+            ),
           ),
         ),
       ],

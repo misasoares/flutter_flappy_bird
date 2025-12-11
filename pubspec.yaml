@@ -60,6 +60,8 @@ flutter:
     - assets/images/background.png
     - assets/audio/tap_effect.mp3
     - assets/audio/background_music.wav
+    - assets/images/audio_on.png
+    - assets/images/audio_off.png
 
   fonts:
     - family: PressStart2P
