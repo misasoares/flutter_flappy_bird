@@ -2,6 +2,8 @@
 
 Started as a simple project to learn the basics of Flutter and game development with Flame, this project evolved into a comprehensive study of Software Architecture and Design Patterns applied to Flutter games.
 
+<img src="https://github.com/user-attachments/assets/a7344ee7-b0b8-47d2-b676-31bbcfd8d98d" width="300">
+
 ![image](https://github.com/user-attachments/assets/a7344ee7-b0b8-47d2-b676-31bbcfd8d98d)
 
 ## Architecture: Feature-First
