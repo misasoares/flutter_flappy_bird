@@ -10,20 +10,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   Flame.device.setPortrait();
-  runApp(GameWidget(
-    game: FlappyBirdGame(),
-    overlayBuilderMap: {
-      'GameOverMenu': (BuildContext context, FlappyBirdGame game) {
-        return GameOverMenu(gameRef: game);
+  runApp(
+    GameWidget(
+      game: FlappyBirdGame(),
+      overlayBuilderMap: {
+        'GameOverMenu': (BuildContext context, FlappyBirdGame game) {
+          return GameOverMenu(gameRef: game);
+        },
+        'WelcomeMenu': (BuildContext context, FlappyBirdGame game) {
+          return WelcomeMenu(gameRef: game);
+        },
       },
-      'WelcomeMenu': (BuildContext context, FlappyBirdGame game) {
-        return WelcomeMenu(gameRef: game);
-      },
-    },
-    initialActiveOverlays: [
-      'WelcomeMenu'
-    ], // Mostra a tela inicial ao iniciar o app
-  ));
+      initialActiveOverlays: [
+        'WelcomeMenu',
+      ], // Mostra a tela inicial ao iniciar o app
+    ),
+  );
 }
 
 class WelcomeMenu extends StatefulWidget {
@@ -115,7 +117,11 @@ class _WelcomeMenuState extends State<WelcomeMenu> {
                     Shadow(
                       blurRadius: 3.0, // Mesma borda desfocada
                       color: Color.fromARGB(
-                          255, 255, 15, 15), // Mesma cor de sombra
+                        255,
+                        255,
+                        15,
+                        15,
+                      ), // Mesma cor de sombra
                       offset: Offset(1.0, 1.0), // Mesmo deslocamento
                     ),
                   ],
@@ -125,12 +131,19 @@ class _WelcomeMenuState extends State<WelcomeMenu> {
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 20, vertical: 15), // Espaçamento interno
+                    horizontal: 20,
+                    vertical: 15,
+                  ), // Espaçamento interno
                   backgroundColor: const Color.fromARGB(
-                      255, 255, 219, 59), // Cor de fundo do botão
+                    255,
+                    255,
+                    219,
+                    59,
+                  ), // Cor de fundo do botão
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(
-                        5), // Borda ligeiramente arredondada
+                      5,
+                    ), // Borda ligeiramente arredondada
                   ),
                   shadowColor: Colors.red, // Cor da sombra
                   elevation: 5, // Elevação do botão
@@ -209,9 +222,15 @@ class GameOverMenu extends StatelessWidget {
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               padding: EdgeInsets.symmetric(
-                  horizontal: 20, vertical: 15), // Espaçamento interno
+                horizontal: 20,
+                vertical: 15,
+              ), // Espaçamento interno
               backgroundColor: const Color.fromARGB(
-                  255, 255, 219, 59), // Cor de fundo do botão
+                255,
+                255,
+                219,
+                59,
+              ), // Cor de fundo do botão
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(5),
               ),
@@ -235,10 +254,12 @@ class GameOverMenu extends StatelessWidget {
             ),
             onPressed: () {
               gameRef.reset(); // Reinicia o estado do jogo
-              gameRef.overlays
-                  .remove('GameOverMenu'); // Remove a tela de Game Over
-              gameRef.overlays
-                  .add('WelcomeMenu'); // Adiciona a tela de boas-vindas
+              gameRef.overlays.remove(
+                'GameOverMenu',
+              ); // Remove a tela de Game Over
+              gameRef.overlays.add(
+                'WelcomeMenu',
+              ); // Adiciona a tela de boas-vindas
             },
           ),
         ],
@@ -247,7 +268,8 @@ class GameOverMenu extends StatelessWidget {
   }
 }
 
-class FlappyBirdGame extends FlameGame with TapDetector {
+class FlappyBirdGame extends FlameGame
+    with TapDetector, WidgetsBindingObserver {
   late Bird bird;
   Pipe? topPipe;
   Pipe? bottomPipe;
@@ -266,6 +288,7 @@ class FlappyBirdGame extends FlameGame with TapDetector {
   @override
   Future<void> onLoad() async {
     super.onLoad();
+    WidgetsBinding.instance.addObserver(this);
 
     // Carregar a música de fundo e colocá-la em loop
     bgPlayer.setReleaseMode(ReleaseMode.loop);
@@ -314,6 +337,23 @@ class FlappyBirdGame extends FlameGame with TapDetector {
     pauseEngine(); // Pausa o jogo, mas mantém o background visível
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      bgPlayer.pause();
+      if (isGameStarted) {
+        pauseEngine();
+      }
+    } else if (state == AppLifecycleState.resumed) {
+      bgPlayer.resume();
+      if (isGameStarted) {
+        resumeEngine();
+      }
+    }
+  }
+
   void updateScoreText() {
     scoreText.text = 'Pontuação: $score';
   }
@@ -341,16 +381,22 @@ class FlappyBirdGame extends FlameGame with TapDetector {
     // Se for o primeiro par de canos, inicializa aleatoriamente dentro do intervalo
     double topPipeHeight;
     if (topPipe == null) {
-      topPipeHeight = Random().nextDouble() * (maxPipeHeight - minPipeHeight) +
+      topPipeHeight =
+          Random().nextDouble() * (maxPipeHeight - minPipeHeight) +
           minPipeHeight;
     } else {
       // Ajusta o próximo cano baseado no último cano
       double lastPipeCenter = topPipe!.height + pipeGap / 2;
-      double minNextHeight =
-          (lastPipeCenter - pipeGap).clamp(minPipeHeight, maxPipeHeight);
-      double maxNextHeight =
-          (lastPipeCenter + pipeGap).clamp(minPipeHeight, maxPipeHeight);
-      topPipeHeight = Random().nextDouble() * (maxNextHeight - minNextHeight) +
+      double minNextHeight = (lastPipeCenter - pipeGap).clamp(
+        minPipeHeight,
+        maxPipeHeight,
+      );
+      double maxNextHeight = (lastPipeCenter + pipeGap).clamp(
+        minPipeHeight,
+        maxPipeHeight,
+      );
+      topPipeHeight =
+          Random().nextDouble() * (maxNextHeight - minNextHeight) +
           minNextHeight;
     }
 
@@ -446,6 +492,7 @@ class FlappyBirdGame extends FlameGame with TapDetector {
 
   @override
   Future<void> onDetach() async {
+    WidgetsBinding.instance.removeObserver(this);
     await bgPlayer.stop();
     super.onDetach();
   }
